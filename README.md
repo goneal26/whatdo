@@ -43,10 +43,16 @@ Remove a task:
 hobbypicker drop reading
 ```
 
+Remove all tasks:
+
+```
+hobbypicker clear
+```
+
 ## Configuration
 
-Your "global" task list is stored in a text file. By default it is placed in 
-the same directory as this program. Here is an example:
+Your "global" task list is stored in a text file, with each task being written
+on a separate line. Here is an example:
 
 ```
 painting
@@ -61,7 +67,8 @@ To find the path to your current config, enter:
 hobbypicker path
 ```
 
-By default, the task list is named `todo.txt`.
+By default, the task list is named `todo.txt` and is stored in the same 
+directory as the program's executable.
 
 The location of the config file used by the program can be changed:
 
