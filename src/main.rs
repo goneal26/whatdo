@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use std::env;
 use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
@@ -17,6 +18,7 @@ struct Cli {
 enum Commands {
   /// Pick and display the name of a random task from the list.
   /// If no command is provided, this is the default behavior.
+  /// (TODO NOT IMPLEMENTED YET)
   Pick,
 
   /// Add tasks to the list
@@ -42,10 +44,6 @@ enum Commands {
     /// Filter for unchecked tasks
     #[clap(long, short, action)]
     unchecked: bool,
-
-    /// Display tasks as markdown list
-    #[clap(long, short, action)]
-    markdown: bool,
   },
 
   /// Mark tasks as complete
@@ -72,7 +70,7 @@ enum Commands {
   /// Get the path of the global list file
   Config, // TODO maybe change the names of these
 
-  /// Change the path of the global list file
+  /// Change the path of the global list file (TODO NOT IMPLEMENTED YET)
   #[command(arg_required_else_help(true))]
   SetConfig {
     /// Path to new global list file
@@ -80,11 +78,61 @@ enum Commands {
   },
 }
 
-fn main() {
+mod list;
+use list::List;
+
+fn main() -> std::io::Result<()> {
   let args = Cli::parse();
 
+  let mut path = env::current_dir()?;
+  path.push("todo");
+  path.set_extension("md"); // TODO changing from default path?
+
+  let mut list = List::new(path);
+
   match args.command {
-    None => println!("picked task: ___"),
-    Some(c) => println!("Subcommand: {:?}", c),
-  }
+    None | Some(Commands::Pick) => {
+      let picked = list.pick();
+      match picked {
+        Some(task) => println!("Picked: {}", task),
+        None => println!("No unfinished tasks to pick!"),
+      };
+    }
+    Some(Commands::Add { tasks }) => {
+      for task in tasks.iter() {
+        list.add(task);
+      }
+    }
+    Some(Commands::Remove { tasks }) => {
+      for task in tasks.iter() {
+        list.remove(task);
+      }
+    }
+    Some(Commands::List { checked, unchecked }) => {
+      if !checked && !unchecked {
+        // i.e. no flags passed
+        println!("{}", list.get_list_as_string(true, true)); // display full list
+      } else {
+        // filter for only checked/unchecked items
+        println!("{}", list.get_list_as_string(checked, unchecked));
+      }
+    }
+    Some(Commands::Check { tasks }) => {
+      for task in tasks.iter() {
+        list.check(task);
+      }
+    }
+    Some(Commands::Uncheck { tasks }) => {
+      for task in tasks.iter() {
+        list.uncheck(task);
+      }
+    }
+    Some(Commands::Clear { all }) => list.clear(all),
+    Some(Commands::Config) => {
+      println!("{}", list.get_path().display());
+    }
+    Some(Commands::SetConfig { path }) => list.set_path(path),
+  };
+
+  Ok(())
 }
