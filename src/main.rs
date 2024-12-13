@@ -18,7 +18,6 @@ struct Cli {
 enum Commands {
   /// Pick and display the name of a random task from the list.
   /// If no command is provided, this is the default behavior.
-  /// (TODO NOT IMPLEMENTED YET)
   Pick,
 
   /// Add tasks to the list
@@ -70,7 +69,7 @@ enum Commands {
   /// Get the path of the global list file
   Config, // TODO maybe change the names of these
 
-  /// Change the path of the global list file (TODO NOT IMPLEMENTED YET)
+  /// Change the path of the global list file (BROKEN)
   #[command(arg_required_else_help(true))]
   SetConfig {
     /// Path to new global list file
