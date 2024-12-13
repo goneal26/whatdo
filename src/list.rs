@@ -15,15 +15,13 @@ impl List {
 
   // Pick and return a random unchecked task from the list, or None
   pub fn pick(&self) -> Option<String> {
-    let fileres = OpenOptions::new()
-      .read(true)
-      .open(&self.path);
+    let fileres = OpenOptions::new().read(true).open(&self.path);
 
     let file = match fileres {
       Ok(file) => file,
-      Err(_) => { return None }
+      Err(_) => return None,
     };
-    
+
     let reader = BufReader::new(file);
 
     // Collect all unchecked tasks
