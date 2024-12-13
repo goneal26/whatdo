@@ -31,55 +31,40 @@ Add tasks to the list directly as single-word arguments:
 hobbypicker add painting reading biking
 ```
 
-Mark a task as done:
-
-```
-hobbypicker check taskname
-```
-
-Unmark a task as done:
-
-```
-hobbypicker uncheck taskname
-```
-
-Clear all completed tasks from the list:
-
-```
-hobbypicker clear
-```
-
 List all tasks:
 
 ```
 hobbypicker list
 ```
 
+Remove a task:
+
+```
+hobbypicker drop reading
+```
+
 ## Configuration
 
-Your "global" task list is stored in a config file. By default it is placed in 
-the same directory as this program. This file is a Markdown file containing a 
-task list, like so:
+Your "global" task list is stored in a text file. By default it is placed in 
+the same directory as this program. Here is an example:
 
 ```
-- [ ] task1
-- [x] task2
-- [ ] task3
-- [ ] task4
+painting
+reading
+biking
+swimming
 ```
-
-With the `x` marking a completed task, and a space marking an incomplete task.
 
 To find the path to your current config, enter:
 
 ```
-hobbypicker config
+hobbypicker path
 ```
 
-By default, the task list is named `todo.md`.
+By default, the task list is named `todo.txt`.
 
 The location of the config file used by the program can be changed:
 
 ```
-hobbypicker set-config /path/to/todo.md
+hobbypicker set-path /path/to/todo.txt
 ```
