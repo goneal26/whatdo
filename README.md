@@ -1,6 +1,6 @@
 # hobbypicker (working title)
 
-For when you've got too many hobbies.
+The TODO list CLI for when you can't decide what to do next.
 
 This is a simple command-line program for picking between a random "hobby" from 
 a list of hobbies. I've got a lot of different projects that I like to work on,
@@ -28,7 +28,7 @@ every task that you see the same one again.
 Add tasks to the list directly as single-word arguments:
 
 ```
-hobbypicker --add painting reading biking
+hobbypicker add painting reading biking
 ```
 
 Mark a task as done:
@@ -46,7 +46,7 @@ hobbypicker uncheck taskname
 Clear all completed tasks from the list:
 
 ```
-hobbypicker clean
+hobbypicker clear
 ```
 
 List all tasks:
@@ -54,8 +54,6 @@ List all tasks:
 ```
 hobbypicker list
 ```
-
-## 
 
 ## Configuration
 
@@ -75,7 +73,7 @@ With the `x` marking a completed task, and a space marking an incomplete task.
 To find the path to your current config, enter:
 
 ```
-hobbypicker --config
+hobbypicker config
 ```
 
 By default, the task list is named `todo.md`.
@@ -83,5 +81,5 @@ By default, the task list is named `todo.md`.
 The location of the config file used by the program can be changed:
 
 ```
-hobbypicker --set-config /path/to/config.md
+hobbypicker set-config /path/to/todo.md
 ```
