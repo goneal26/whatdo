@@ -53,8 +53,8 @@ impl List {
     writeln!(file, "{}", task).expect("(Unable to add task)");
   }
 
-  // remove item from list
-  pub fn remove(&self, task: &str) {
+  // drop item from list
+  pub fn drop(&self, task: &str) {
     let file = OpenOptions::new()
       .read(true)
       .open(&self.path)
@@ -66,7 +66,7 @@ impl List {
       tasks.into_iter().filter(|t| !t.contains(task)).collect();
 
     fs::write(&self.path, updated_tasks.join("\n") + "\n")
-      .expect("(Unable to remove task)");
+      .expect("(Unable to drop task)");
   }
 
   // clear all items from list
@@ -128,17 +128,17 @@ mod tests {
   }
 
   #[test]
-  fn test_remove_task() {
+  fn test_drop_task() {
     let list = create_test_list();
-    let task = "task_to_remove";
+    let task = "task_to_drop";
 
-    // Add a task, then remove it
+    // Add a task, then drop it
     list.add(task);
-    list.remove(task);
+    list.drop(task);
 
-    // Verify the task is removed from the file
+    // Verify the task is dropd from the file
     let content = fs::read_to_string(list.path()).expect("Unable to read file");
-    assert!(!content.contains("task_to_remove"));
+    assert!(!content.contains("task_to_drop"));
   }
 
   #[test]

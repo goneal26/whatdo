@@ -29,7 +29,7 @@ enum Commands {
 
   /// Remove tasks from the list
   #[command(arg_required_else_help(true))]
-  Remove {
+  Drop {
     /// Space-separated list of tasks to remove
     tasks: Vec<String>,
   },
@@ -76,12 +76,12 @@ fn main() -> std::io::Result<()> {
         list.add(task);
       }
     }
-    Some(Commands::Remove { tasks }) => {
+    Some(Commands::Drop { tasks }) => {
       for task in tasks.iter() {
-        list.remove(task);
+        list.drop(task);
       }
     }
-    Some(Commands::List) => println!("{}", list.to_string()),
+    Some(Commands::List) => println!("{}", list),
     Some(Commands::Clear) => list.clear(),
     Some(Commands::Path) => {
       println!("{}", list.path().display());
