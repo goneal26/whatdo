@@ -5,7 +5,7 @@ use std::path::PathBuf;
 #[derive(Debug, Parser)]
 #[command(
   version,
-  about = "The TODO list CLI for when you can't decide what to do next."
+  about = "The CLI for when you can't decide what to do next."
 )]
 #[command(propagate_version = true)]
 struct Cli {
