@@ -4,7 +4,7 @@ use std::path::PathBuf;
 #[derive(Debug, Parser)]
 #[command(
   version,
-  about="The TODO list CLI for when you can't decide what to do next.",
+  about = "The TODO list CLI for when you can't decide what to do next."
 )]
 #[command(propagate_version = true)]
 struct Cli {
@@ -25,14 +25,14 @@ enum Commands {
     /// Space-separated list of tasks to add
     tasks: Vec<String>,
   },
-  
+
   /// Remove tasks from the list
   #[command(arg_required_else_help(true))]
   Remove {
     /// Space-separated list of tasks to remove
     tasks: Vec<String>,
   },
-  
+
   /// Get list of all tasks
   List {
     /// Filter for checked tasks
@@ -47,21 +47,21 @@ enum Commands {
     #[clap(long, short, action)]
     markdown: bool,
   },
-  
+
   /// Mark tasks as complete
   #[command(arg_required_else_help(true))]
   Check {
     /// Space-separated list of tasks to mark as complete
     tasks: Vec<String>,
   },
-  
+
   /// Unmark tasks as complete
   #[command(arg_required_else_help(true))]
   Uncheck {
     /// Space-separated list of tasks to unmark as complete
     tasks: Vec<String>,
   },
-  
+
   /// Remove checked tasks from the list
   Clear {
     /// Remove ALL tasks from the list (checked AND unchecked)
