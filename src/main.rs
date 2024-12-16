@@ -67,49 +67,33 @@ fn get_path() -> Option<PathBuf> {
 }
 
 // deserialize list data stored in toml file
-fn load_dolist() -> Result<DoList, String> {
-  let Some(path) = get_path() else {
-    return Err("whatdo had error: list file path not found".to_string());
-  };
+fn load_dolist() -> Result<DoList, Box<dyn std::error::Error>> {
+  let path = get_path().ok_or("list file path not found")?;
 
   // fetch file contents into toml string
-  let Ok(data) = fs::read_to_string(&path) else {
-    return Err("whatdo had error: failed to read list file".to_string());
-  };
+  let data = fs::read_to_string(&path)?;
 
-  let Ok(list) = toml::from_str(data.as_ref()) else {
-    return Err(
-      "whatdo had error: failed to deserialize list data".to_string(),
-    );
-  };
+  // serialize
+  let list = toml::from_str(data.as_ref())?;
 
   Ok(list)
 }
 
 // serialize list data and write to toml file
-fn store_dolist(list: &DoList) -> Result<(), String> {
-  let Ok(data) = toml::to_string_pretty(list) else {
-    return Err("whatdo had error: failed to serialize list data".to_string());
-  };
+fn store_dolist(list: &DoList) -> Result<(), Box<dyn std::error::Error>> {
+  let data = toml::to_string_pretty(list)?;
 
-  let Some(path) = get_path() else {
-    return Err("whatdo had error: list file path not found".to_string());
-  };
+  let path = get_path().ok_or("list file path not found")?;
 
   // create config file if does not exist
   if let Some(parent) = path.parent() {
-    if fs::create_dir_all(parent).is_err() {
-      return Err(
-        "whatdo had error: failed to create list parent directory".to_string(),
-      );
-    }
+    fs::create_dir_all(parent)?;
   }
 
   // write to file
-  match fs::write(&path, data) {
-    Ok(()) => Ok(()),
-    Err(_) => Err("whatdo had error: failed to write list to file".to_string()),
-  }
+  fs::write(&path, data)?;
+
+  Ok(())
 }
 
 fn main() {
@@ -126,8 +110,7 @@ fn main() {
 
   match args.command {
     None | Some(Commands::Pick) => {
-      let picked = list.pick();
-      match picked {
+      match list.pick() {
         Some(task) => println!("{task}"),
         None => eprintln!("whatdo had error: list is empty"),
       };
@@ -168,5 +151,5 @@ fn main() {
   match store_dolist(&list) {
     Ok(()) => {}
     Err(msg) => panic!("{msg}"),
-  }
+  };
 }
