@@ -18,6 +18,23 @@ order.
 - Reshuffle the "queue" if you don't like how it's ordered.
 - Queue is stored in a human-readable TOML file
 
+## Installation
+
+### Build from source
+
+To build from source, you'll (obviously) need `cargo`:
+
+```bash
+git clone https://github.com/goneal26/whatdo.git
+cd whatdo
+cargo build --release
+```
+
+From here, the program executable can be found at `target/release/whatdo`.
+
+If you want, you can instead run `cargo install --path .` in the repository
+folder to install `whatdo` to your system.
+
 ## Usage
 
 Grab a random unfinished task to work on from the queue:
