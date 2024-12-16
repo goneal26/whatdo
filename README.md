@@ -2,33 +2,39 @@
 
 The CLI for when you can't decide what to do next.
 
-This is a simple command-line program for picking between a random "hobby" from 
-a list of hobbies. I've got a lot of different projects that I like to work on,
-so I let this program pick one for me.
+I've got a lot of different projects that I like to work on, and a lot of 
+different things I need to get done. These often all end up having the same 
+priority, so I made this program to just pick one for me to work on instead.
+
+`whatdo` is a to-do list that adds your tasks to a "queue" that works a bit
+like a music playlist- you get a different ordering of every task in the
+"queue," and after going through each item the list is re-shuffled to a new 
+order.
 
 ## Features
 
-- Adds items to a list of "global" tasks.
-- Randomly select a task from that list to work on.
-- Global task list stored in a human-readable TOML file.
+- Add and remove notes for things you want to work on to a "queue".
+- Pick a random thing from the "queue" for you to do next.
+- Reshuffle the "queue" if you don't like how it's ordered.
+- Queue is stored in a human-readable TOML file
 
 ## Usage
 
-Grab a random unfinished task to work on from the global list:
+Grab a random unfinished task to work on from the queue:
 
 ```
 whatdo
 ```
 
-whatdo essentially "shuffles" the tasks when you do this. This way, the 
-same task is not picked twice in a row, and it's not until it has gone through
-every task that you see the same one again.
+You can also use `whatdo pick` to achieve the same result.
 
-Add tasks to the list directly as single-word arguments:
+Add tasks to the queue directly as single-word arguments:
 
 ```
 whatdo add painting reading biking
 ```
+
+Tasks are single-word items separated by spaces.
 
 List all tasks:
 
@@ -36,7 +42,9 @@ List all tasks:
 whatdo list
 ```
 
-Remove a task:
+This will return the entire list, with each task on a separate line.
+
+Remove a task by name:
 
 ```
 whatdo drop reading
@@ -48,29 +56,55 @@ Remove all tasks:
 whatdo clear
 ```
 
-## Configuration
-
-Your "global" task list is stored in a text file, with each task being written
-on a separate line. Here is an example:
+Reshuffle the queue (if you don't like the ordering). This is done automatically
+after you've ran `pick` for every item in the queue:
 
 ```
-painting
-reading
-biking
-swimming
+whatdo shuffle
 ```
 
-To find the path to your current config, enter:
+See help and other information:
+
+```
+whatdo help
+```
+
+You can also use `whatdo --help` or `whatdo -h`.
+
+See version info:
+
+```
+whatdo --version
+```
+
+You can also use `whatdo -V` instead.
+
+## TOML list storage
+
+Your "global" task list is stored in a TOML file, alongside the queue containing
+the next hobbies the program will "pick" (in case you want to spoil the 
+surprise).
+
+Here is an example:
+
+```toml
+list = [
+    "reading",
+    "swimming",
+    "biking",
+    "painting",
+]
+queue = [
+    "swimming",
+    "biking",
+]
+```
+
+To find the path to this file, enter:
 
 ```
 whatdo path
 ```
 
-By default, the task list is named `todo.txt` and is stored in the same 
-directory as the program's executable.
-
-The location of the config file used by the program can be changed:
-
-```
-whatdo set-path /path/to/todo.txt
-```
+By default, the task list is named `list.toml` and is stored in your local 
+config directory. So, on linux, that's something like `~/.config/whatdo/list.toml`.
