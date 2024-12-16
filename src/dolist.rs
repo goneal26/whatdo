@@ -51,8 +51,7 @@ impl DoList {
   // drop item from dolist and return it
   pub fn drop(&mut self, task: &str) -> Result<String, DoListErr> {
     if let Some(index) = self.list.iter().position(|s| *s == task) {
-      let removed = self.list.remove(index);
-      Ok(removed)
+      Ok(self.list.remove(index))
     } else {
       Err(DoListErr {
         err: format!("item \"{task}\" not removed (item not found)"),
