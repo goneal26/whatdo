@@ -39,23 +39,23 @@ impl DoList {
   pub fn add(&mut self, task: String) -> Result<(), DoListErr> {
     if self.list.contains(&task) {
       return Err(DoListErr {
-        err: format!("item \"{}\" already on the list", task),
+        err: format!("item \"{task}\" already on the list"),
       });
     }
 
     self.list.push(task.clone());
-    self.queue.push_back(task.clone());
+    self.queue.push_back(task);
     Ok(())
   }
 
   // drop item from dolist and return it
-  pub fn drop(&mut self, task: String) -> Result<String, DoListErr> {
+  pub fn drop(&mut self, task: &str) -> Result<String, DoListErr> {
     if let Some(index) = self.list.iter().position(|s| *s == task) {
       let removed = self.list.remove(index);
       Ok(removed)
     } else {
       Err(DoListErr {
-        err: format!("item \"{}\" not removed (item not found)", task),
+        err: format!("item \"{task}\" not removed (item not found)"),
       })
     }
   }
@@ -73,7 +73,7 @@ impl DoList {
     self.queue.clear();
 
     // add shuffled items to queue
-    for item in copy.iter() {
+    for item in &copy {
       self.queue.push_back(item.clone().clone());
     }
   }
@@ -102,8 +102,8 @@ impl DoList {
 // printing a DoList
 impl fmt::Display for DoList {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    let list_string = self.list.to_vec().join("\n");
-    write!(f, "{}", list_string)
+    let list_string = self.list.clone().join("\n");
+    write!(f, "{list_string}")
   }
 }
 
@@ -141,7 +141,7 @@ mod tests {
   fn test_drop() {
     let mut do_list = DoList::new();
     do_list.add("Task1".to_string()).unwrap();
-    let removed = do_list.drop("Task1".to_string()).unwrap();
+    let removed = do_list.drop("Task1").unwrap();
     assert_eq!(removed, "Task1".to_string());
   }
 

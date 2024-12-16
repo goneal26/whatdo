@@ -1,3 +1,4 @@
+#![warn(clippy::pedantic)]
 use clap::{Parser, Subcommand};
 use std::fs;
 use std::path::PathBuf;
@@ -67,28 +68,19 @@ fn get_path() -> Option<PathBuf> {
 
 // deserialize list data stored in toml file
 fn load_dolist() -> Result<DoList, String> {
-  let path = match get_path() {
-    Some(path) => path,
-    None => {
-      return Err("whatdo had error: list file path not found".to_string())
-    }
+  let Some(path) = get_path() else {
+    return Err("whatdo had error: list file path not found".to_string());
   };
 
-  // TODO fetch file contents into toml string
-  let data = match fs::read_to_string(&path) {
-    Ok(contents) => contents,
-    Err(_) => {
-      return Err("whatdo had error: failed to read list file".to_string())
-    }
+  // fetch file contents into toml string
+  let Ok(data) = fs::read_to_string(&path) else {
+    return Err("whatdo had error: failed to read list file".to_string());
   };
 
-  let list: DoList = match toml::from_str(data.as_ref()) {
-    Ok(list) => list,
-    Err(_) => {
-      return Err(
-        "whatdo had error: failed to deserialize list data".to_string(),
-      )
-    }
+  let Ok(list) = toml::from_str(data.as_ref()) else {
+    return Err(
+      "whatdo had error: failed to deserialize list data".to_string(),
+    );
   };
 
   Ok(list)
@@ -96,18 +88,12 @@ fn load_dolist() -> Result<DoList, String> {
 
 // serialize list data and write to toml file
 fn store_dolist(list: &DoList) -> Result<(), String> {
-  let data = match toml::to_string_pretty(list) {
-    Ok(toml) => toml,
-    Err(_) => {
-      return Err("whatdo had error: failed to serialize list data".to_string())
-    }
+  let Ok(data) = toml::to_string_pretty(list) else {
+    return Err("whatdo had error: failed to serialize list data".to_string());
   };
 
-  let path = match get_path() {
-    Some(path) => path,
-    None => {
-      return Err("whatdo had error: list file path not found".to_string())
-    }
+  let Some(path) = get_path() else {
+    return Err("whatdo had error: list file path not found".to_string());
   };
 
   // create config file if does not exist
@@ -121,19 +107,19 @@ fn store_dolist(list: &DoList) -> Result<(), String> {
 
   // write to file
   match fs::write(&path, data) {
-    Ok(_) => Ok(()),
+    Ok(()) => Ok(()),
     Err(_) => Err("whatdo had error: failed to write list to file".to_string()),
   }
 }
 
-fn main() -> std::io::Result<()> {
+fn main() {
   let args = Cli::parse();
 
   // load list from file
   let mut list = match load_dolist() {
     Ok(list) => list,
     Err(error) => {
-      eprintln!("{}\nCreating new file...", error);
+      eprintln!("{error}\nCreating new file...");
       DoList::new()
     }
   };
@@ -142,27 +128,27 @@ fn main() -> std::io::Result<()> {
     None | Some(Commands::Pick) => {
       let picked = list.pick();
       match picked {
-        Some(task) => println!("{}", task),
+        Some(task) => println!("{task}"),
         None => eprintln!("whatdo had error: list is empty"),
       };
     }
     Some(Commands::Add { tasks }) => {
-      for task in tasks.iter() {
+      for task in &tasks {
         match list.add(task.to_string()) {
-          Ok(_) => {}
-          Err(error) => eprintln!("{}", error),
+          Ok(()) => {}
+          Err(error) => eprintln!("{error}"),
         }
       }
     }
     Some(Commands::Drop { tasks }) => {
-      for task in tasks.iter() {
-        match list.drop(task.to_string()) {
-          Ok(removed_task) => println!("whatdo: removed \"{}\"", removed_task),
-          Err(error) => eprintln!("{}", error),
+      for task in &tasks {
+        match list.drop(task) {
+          Ok(removed_task) => println!("whatdo: removed \"{removed_task}\""),
+          Err(error) => eprintln!("{error}"),
         }
       }
     }
-    Some(Commands::List) => println!("{}", list),
+    Some(Commands::List) => println!("{list}"),
     Some(Commands::Clear) => {
       list.clear();
       println!("whatdo: cleared all items");
@@ -175,12 +161,12 @@ fn main() -> std::io::Result<()> {
     }
     Some(Commands::Shuffle) => {
       list.shuffle();
-      println!("whatdo: reshuffled queue")
+      println!("whatdo: reshuffled queue");
     }
   };
 
   match store_dolist(&list) {
-    Ok(_) => Ok(()),
-    Err(_) => panic!("whatdo had error: could not store list in file"),
+    Ok(()) => {}
+    Err(msg) => panic!("{msg}"),
   }
 }
