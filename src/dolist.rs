@@ -59,7 +59,7 @@ impl DoList {
   }
 
   // reshuffle dolist
-  fn shuffle(&mut self) {
+  pub fn shuffle(&mut self) {
     // make copy of the hashset keys as a vec
     let mut copy: Vec<String> = Vec::from_iter((self.list).clone());
 
@@ -67,6 +67,9 @@ impl DoList {
     let mut rng = thread_rng();
     copy.shuffle(&mut rng);
 
+    // empty the current queue
+    self.queue.clear();
+    
     // add shuffled items to queue
     for item in copy.iter() {
       self.queue.push_back(item.clone().clone());

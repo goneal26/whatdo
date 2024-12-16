@@ -18,32 +18,35 @@ struct Cli {
 // possible subcommands
 #[derive(Subcommand, Debug, Clone)]
 enum Commands {
-  /// Pick and display the name of a random task from the list.
-  /// If no command is provided, this is the default behavior.
+  /// Pick and display the name of a random task from the queue.
   Pick,
 
-  /// Add tasks to the list
+  /// Add tasks to the queue
   #[command(arg_required_else_help(true))]
   Add {
     /// Space-separated list of tasks to add
     tasks: Vec<String>,
   },
 
-  /// Remove tasks from the list
+  /// Remove tasks from the queue by name
   #[command(arg_required_else_help(true))]
   Drop {
     /// Space-separated list of tasks to remove
     tasks: Vec<String>,
   },
 
-  /// Get list of all tasks
+  /// Return the list of all tasks
   List,
 
-  /// Clear all tasks from the list
+  /// Clear all tasks from the queue
   Clear,
 
-  /// Get the path to the config file
-  Config,
+  /// Get the path to the TOML file containing your list/queue
+  Path,
+
+  /// Reshuffle the queue
+  /// This is done automatically after you've gone through every task
+  Shuffle,
 }
 
 // data structure for storing tasks/hobbies
@@ -67,7 +70,7 @@ fn load_dolist() -> Result<DoList, String> {
   let path = match get_path() {
     Some(path) => path,
     None => {
-      return Err("whatdo had error: config file path not found".to_string())
+      return Err("whatdo had error: list file path not found".to_string())
     }
   };
 
@@ -103,7 +106,7 @@ fn store_dolist(list: &DoList) -> Result<(), String> {
   let path = match get_path() {
     Some(path) => path,
     None => {
-      return Err("whatdo had error: config file path not found".to_string())
+      return Err("whatdo had error: list file path not found".to_string())
     }
   };
 
@@ -164,11 +167,15 @@ fn main() -> std::io::Result<()> {
       list.clear();
       println!("whatdo: cleared all items");
     }
-    Some(Commands::Config) => {
+    Some(Commands::Path) => {
       match get_path() {
         Some(path) => println!("{}", path.display()),
-        None => eprintln!("whatdo had error: config file path not found"),
+        None => eprintln!("whatdo had error: list file path not found"),
       };
+    }
+    Some(Commands::Shuffle) => {
+      list.shuffle();
+      println!("whatdo: reshuffled queue")
     }
   };
 
