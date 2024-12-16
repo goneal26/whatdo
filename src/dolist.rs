@@ -1,7 +1,7 @@
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
-use std::collections::{HashSet, VecDeque};
+use std::collections::VecDeque;
 use std::error::Error;
 use std::fmt;
 
@@ -22,7 +22,7 @@ impl Error for DoListErr {}
 // actual list type
 #[derive(Serialize, Deserialize)]
 pub struct DoList {
-  list: HashSet<String>,
+  list: Vec<String>,
   queue: VecDeque<String>,
 }
 
@@ -30,32 +30,34 @@ impl DoList {
   // create new dolist
   pub fn new() -> Self {
     Self {
-      list: HashSet::new(),
+      list: Vec::new(),
       queue: VecDeque::new(),
     }
   }
 
   // add item to dolist
   pub fn add(&mut self, task: String) -> Result<(), DoListErr> {
-    if !self.list.insert(task.clone()) {
+    if self.list.contains(&task) {
       return Err(DoListErr {
         err: format!("item \"{}\" already on the list", task),
       });
     }
 
-    self.queue.push_back(task);
+    self.list.push(task.clone());
+    self.queue.push_back(task.clone());
     Ok(())
   }
 
   // drop item from dolist and return it
   pub fn drop(&mut self, task: String) -> Result<String, DoListErr> {
-    if !self.list.remove(&task) {
-      return Err(DoListErr {
+    if let Some(index) = self.list.iter().position(|s| *s == task) {
+      let removed = self.list.remove(index);
+      Ok(removed)
+    } else {
+      Err(DoListErr {
         err: format!("item \"{}\" not removed (item not found)", task),
-      });
+      })
     }
-
-    Ok(task)
   }
 
   // reshuffle dolist
@@ -69,7 +71,7 @@ impl DoList {
 
     // empty the current queue
     self.queue.clear();
-    
+
     // add shuffled items to queue
     for item in copy.iter() {
       self.queue.push_back(item.clone().clone());
@@ -100,12 +102,7 @@ impl DoList {
 // printing a DoList
 impl fmt::Display for DoList {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    let list_string = self
-      .list
-      .iter()
-      .cloned()
-      .collect::<Vec<String>>()
-      .join("\n");
+    let list_string = self.list.to_vec().join("\n");
     write!(f, "{}", list_string)
   }
 }
@@ -195,8 +192,8 @@ mod tests {
     // HashSet does not guarantee order, so we need to verify the content
     let expected = "Task1\nTask2\nTask3";
     assert_eq!(
-      formatted.lines().collect::<HashSet<_>>(),
-      expected.lines().collect::<HashSet<_>>()
+      formatted.lines().collect::<Vec<_>>(),
+      expected.lines().collect::<Vec<_>>()
     );
   }
 }
