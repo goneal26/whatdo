@@ -59,7 +59,7 @@ fn get_path() -> Option<PathBuf> {
   // should be something like '~/.config/'
   let base_dir = dirs::config_local_dir()?;
 
-  let config_path = base_dir.join(env!("CARGO_PKG_NAME")).join("list.toml");
+  let config_path = base_dir.join("whatdo").join("list.toml");
 
   // should be something like '~/.config/whatdo/list.toml'
   Some(config_path)
