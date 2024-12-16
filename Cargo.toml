@@ -1,7 +1,9 @@
 [package]
 name = "whatdo"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
+description = "The CLI for when you can't decide what to do next."
+license = "MIT"
 
 [dependencies]
 clap = { version = "4.5.23", features = ["derive"] }
@@ -9,3 +11,10 @@ dirs = "5.0.1"
 rand = "0.8.5"
 serde = { version = "1.0.216", features = ["derive"] }
 toml = "0.8.19"
+
+[profile.release]
+opt-level = "z"
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+strip = true
