@@ -10,7 +10,7 @@ so I let this program pick one for me.
 
 - Adds items to a list of "global" tasks.
 - Randomly select a task from that list to work on.
-- Global task list stored in a human-readable text file.
+- Global task list stored in a human-readable TOML file.
 
 ## Usage
 
