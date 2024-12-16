@@ -1,7 +1,9 @@
 use clap::{Parser, Subcommand};
-use std::env;
+use std::fs;
 use std::path::PathBuf;
+extern crate dirs;
 
+// clap boilerplate
 #[derive(Debug, Parser)]
 #[command(
   version,
@@ -37,57 +39,141 @@ enum Commands {
   /// Get list of all tasks
   List,
 
-  /// Remove checked tasks from the list
+  /// Clear all tasks from the list
   Clear,
 
-  /// Get the path of the global list file
-  Path,
-
-  /// Change the path of the global list file (BROKEN)
-  #[command(arg_required_else_help(true))]
-  SetPath {
-    /// Path to new global list file
-    path: PathBuf,
-  },
+  /// Get the path to the config file
+  Config,
 }
 
-mod list;
-use list::List;
+// data structure for storing tasks/hobbies
+mod dolist;
+use dolist::DoList;
+
+// get the path to the config file
+// return None if not found
+fn get_path() -> Option<PathBuf> {
+  // should be something like '~/.config/'
+  let base_dir = dirs::config_local_dir()?;
+
+  let config_path = base_dir.join(env!("CARGO_PKG_NAME")).join("list.toml");
+
+  // should be something like '~/.config/whatdo/list.toml'
+  Some(config_path)
+}
+
+// deserialize list data stored in toml file
+fn load_dolist() -> Result<DoList, String> {
+  let path = match get_path() {
+    Some(path) => path,
+    None => {
+      return Err("whatdo had error: config file path not found".to_string())
+    }
+  };
+
+  // TODO fetch file contents into toml string
+  let data = match fs::read_to_string(&path) {
+    Ok(contents) => contents,
+    Err(_) => {
+      return Err("whatdo had error: failed to read list file".to_string())
+    }
+  };
+
+  let list: DoList = match toml::from_str(data.as_ref()) {
+    Ok(list) => list,
+    Err(_) => {
+      return Err(
+        "whatdo had error: failed to deserialize list data".to_string(),
+      )
+    }
+  };
+
+  Ok(list)
+}
+
+// serialize list data and write to toml file
+fn store_dolist(list: &DoList) -> Result<(), String> {
+  let data = match toml::to_string_pretty(list) {
+    Ok(toml) => toml,
+    Err(_) => {
+      return Err("whatdo had error: failed to serialize list data".to_string())
+    }
+  };
+
+  let path = match get_path() {
+    Some(path) => path,
+    None => {
+      return Err("whatdo had error: config file path not found".to_string())
+    }
+  };
+
+  // create config file if does not exist
+  if let Some(parent) = path.parent() {
+    if fs::create_dir_all(parent).is_err() {
+      return Err(
+        "whatdo had error: failed to create list parent directory".to_string(),
+      );
+    }
+  }
+
+  // write to file
+  match fs::write(&path, data) {
+    Ok(_) => Ok(()),
+    Err(_) => Err("whatdo had error: failed to write list to file".to_string()),
+  }
+}
 
 fn main() -> std::io::Result<()> {
   let args = Cli::parse();
 
-  let mut path = env::current_dir()?;
-  path.push("todo");
-  path.set_extension("txt"); // TODO changing from default path?
-
-  let mut list = List::new(path);
+  // load list from file
+  let mut list = match load_dolist() {
+    Ok(list) => list,
+    Err(error) => {
+      eprintln!("{}\nCreating new file...", error);
+      DoList::new()
+    }
+  };
 
   match args.command {
     None | Some(Commands::Pick) => {
       let picked = list.pick();
       match picked {
         Some(task) => println!("{}", task),
-        None => println!("(No tasks to pick)"),
+        None => eprintln!("whatdo had error: list is empty"),
       };
     }
     Some(Commands::Add { tasks }) => {
       for task in tasks.iter() {
-        list.add(task);
+        match list.add(task.to_string()) {
+          Ok(_) => {}
+          Err(error) => eprintln!("{}", error),
+        }
       }
     }
     Some(Commands::Drop { tasks }) => {
       for task in tasks.iter() {
-        list.drop(task);
+        match list.drop(task.to_string()) {
+          Ok(removed_task) => println!("whatdo: removed \"{}\"", removed_task),
+          Err(error) => eprintln!("{}", error),
+        }
       }
     }
     Some(Commands::List) => println!("{}", list),
-    Some(Commands::Clear) => list.clear(),
-    Some(Commands::Path) => {
-      println!("{}", list.path().display());
+    Some(Commands::Clear) => {
+      list.clear();
+      println!("whatdo: cleared all items");
     }
-    Some(Commands::SetPath { path }) => list.set_path(path),
+    Some(Commands::Config) => {
+      match get_path() {
+        Some(path) => println!("{}", path.display()),
+        None => eprintln!("whatdo had error: config file path not found"),
+      };
+    }
   };
 
-  Ok(())
+  match store_dolist(&list) {
+    Ok(_) => Ok(()),
+    Err(_) => panic!("whatdo had error: could not store list in file"),
+  }
 }

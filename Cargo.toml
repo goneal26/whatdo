@@ -5,5 +5,8 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.23", features = ["derive"] }
+dirs = "5.0.1"
 rand = "0.8.5"
+serde = { version = "1.0.216", features = ["derive"] }
 tempfile = "3.14.0"
+toml = "0.8.19"

@@ -1,5 +1,6 @@
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+use serde::{Deserialize, Serialize};
 use std::collections::{HashSet, VecDeque};
 use std::error::Error;
 use std::fmt;
@@ -19,9 +20,10 @@ impl fmt::Display for DoListErr {
 impl Error for DoListErr {}
 
 // actual list type
+#[derive(Serialize, Deserialize)]
 pub struct DoList {
   list: HashSet<String>,
-  shuffle_queue: VecDeque<String>,
+  queue: VecDeque<String>,
 }
 
 impl DoList {
@@ -29,7 +31,7 @@ impl DoList {
   pub fn new() -> Self {
     Self {
       list: HashSet::new(),
-      shuffle_queue: VecDeque::new(),
+      queue: VecDeque::new(),
     }
   }
 
@@ -41,23 +43,25 @@ impl DoList {
       });
     }
 
-    self.shuffle_queue.push_back(task);
+    self.queue.push_back(task);
     Ok(())
   }
 
   // drop item from dolist and return it
-  pub fn drop(&mut self, task: String) -> Option<String> {
+  pub fn drop(&mut self, task: String) -> Result<String, DoListErr> {
     if !self.list.remove(&task) {
-      return None;
+      return Err(DoListErr {
+        err: format!("item \"{}\" not removed (item not found)", task),
+      });
     }
 
-    Some(task)
+    Ok(task)
   }
 
   // reshuffle dolist
   fn shuffle(&mut self) {
     // make copy of the hashset keys as a vec
-    let mut copy: Vec<String> = Vec::from_iter((&self.list).clone());
+    let mut copy: Vec<String> = Vec::from_iter((self.list).clone());
 
     // shuffle the slice
     let mut rng = thread_rng();
@@ -65,7 +69,7 @@ impl DoList {
 
     // add shuffled items to queue
     for item in copy.iter() {
-      self.shuffle_queue.push_back(item.clone().clone());
+      self.queue.push_back(item.clone().clone());
     }
   }
 
@@ -76,20 +80,32 @@ impl DoList {
       return None;
     }
 
-    if self.shuffle_queue.is_empty() {
+    if self.queue.is_empty() {
       self.shuffle();
     }
 
-    self.shuffle_queue.pop_front()
+    self.queue.pop_front()
   }
 
   // clear all items from list
   pub fn clear(&mut self) {
     self.list.clear();
-    self.shuffle_queue.clear();
+    self.queue.clear();
   }
 }
 
+// printing a DoList
+impl fmt::Display for DoList {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    let list_string = self
+      .list
+      .iter()
+      .cloned()
+      .collect::<Vec<String>>()
+      .join("\n");
+    write!(f, "{}", list_string)
+  }
+}
 
 #[cfg(test)]
 mod tests {
@@ -106,7 +122,7 @@ mod tests {
 
     assert!(first_pick.is_some());
     assert!(second_pick.is_some());
-    assert_ne!(first_pick, second_pick); // no duplicates due to shuffle_queue
+    assert_ne!(first_pick, second_pick); // no duplicates due to queue
   }
 
   #[test]
@@ -125,11 +141,8 @@ mod tests {
   fn test_drop() {
     let mut do_list = DoList::new();
     do_list.add("Task1".to_string()).unwrap();
-    let removed = do_list.drop("Task1".to_string());
-    assert_eq!(removed, Some("Task1".to_string()));
-
-    // Verify it's no longer in the list
-    assert_eq!(do_list.drop("Task1".to_string()), None);
+    let removed = do_list.drop("Task1".to_string()).unwrap();
+    assert_eq!(removed, "Task1".to_string());
   }
 
   #[test]
@@ -164,5 +177,23 @@ mod tests {
   fn test_pick_empty() {
     let mut do_list = DoList::new();
     assert!(do_list.pick().is_none());
+  }
+
+  #[test]
+  fn test_display_format() {
+    let mut do_list = DoList::new();
+    do_list.add("Task1".to_string()).unwrap();
+    do_list.add("Task2".to_string()).unwrap();
+    do_list.add("Task3".to_string()).unwrap();
+
+    // Use the `to_string` method to test the Display implementation
+    let formatted = do_list.to_string();
+
+    // HashSet does not guarantee order, so we need to verify the content
+    let expected = "Task1\nTask2\nTask3";
+    assert_eq!(
+      formatted.lines().collect::<HashSet<_>>(),
+      expected.lines().collect::<HashSet<_>>()
+    );
   }
 }
