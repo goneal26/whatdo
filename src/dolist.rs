@@ -66,19 +66,15 @@ impl DoList {
     self.queue.retain(|item| item != task);
     
     // return the result
-    if let Some(item) = dropped {
-      Ok(item)
-    } else {
-      Err(DoListErr {
-        err: format!("item \"{task}\" not dropped (item not found)"),
-      })
-    }
+    dropped.ok_or(DoListErr {
+      err: format!("item \"{task}\" not dropped (item not found)")
+    })
   }
 
   // reshuffle dolist
   pub fn shuffle(&mut self) {
     // make copy of the hashset keys as a vec
-    let mut copy: Vec<String> = Vec::from_iter((self.list).clone());
+    let mut copy: Vec<String> = self.list.clone();
 
     // shuffle the slice
     let mut rng = thread_rng();
@@ -89,7 +85,7 @@ impl DoList {
 
     // add shuffled items to queue
     for item in &copy {
-      self.queue.push_back(item.clone().clone());
+      self.queue.push_back(item.clone());
     }
   }
 
@@ -117,8 +113,7 @@ impl DoList {
 // printing a DoList
 impl fmt::Display for DoList {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    let list_string = self.list.clone().join("\n");
-    write!(f, "{list_string}")
+    write!(f, "{}", self.list.clone().join("\n"))
   }
 }
 
@@ -211,8 +206,7 @@ mod tests {
 
     // Use the `to_string` method to test the Display implementation
     let formatted = do_list.to_string();
-
-    // HashSet does not guarantee order, so we need to verify the content
+    
     let expected = "Task1\nTask2\nTask3";
     assert_eq!(
       formatted.lines().collect::<Vec<_>>(),
