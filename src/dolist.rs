@@ -19,7 +19,7 @@ impl fmt::Display for DoListErr {
 
 impl Error for DoListErr {}
 
-// actual list type
+// data structure for storing list and queue
 #[derive(Serialize, Deserialize)]
 pub struct DoList {
   list: Vec<String>,
@@ -50,11 +50,27 @@ impl DoList {
 
   // drop item from dolist and return it
   pub fn drop(&mut self, task: &str) -> Result<String, DoListErr> {
-    if let Some(index) = self.list.iter().position(|s| *s == task) {
-      Ok(self.list.remove(index))
+    let mut dropped = None;
+
+    // remove from list
+    self.list.retain(|item| {
+      if item == task && dropped.is_none() {
+        dropped = Some(item.clone());
+        false // drop this element
+      } else {
+        true
+      }
+    });
+
+    // remove from queue
+    self.queue.retain(|item| item != task);
+    
+    // return the result
+    if let Some(item) = dropped {
+      Ok(item)
     } else {
       Err(DoListErr {
-        err: format!("item \"{task}\" not removed (item not found)"),
+        err: format!("item \"{task}\" not dropped (item not found)"),
       })
     }
   }
@@ -142,6 +158,14 @@ mod tests {
     do_list.add("Task1".to_string()).unwrap();
     let removed = do_list.drop("Task1").unwrap();
     assert_eq!(removed, "Task1".to_string());
+
+    // make sure is not in list
+    let list_str = format!("{do_list}");
+    let is_removed = !list_str.contains("Task1");
+    assert_eq!(is_removed, true);
+
+    // make sure is not in queue
+    assert!(do_list.pick().is_none());
   }
 
   #[test]
